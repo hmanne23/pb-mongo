@@ -135,6 +135,12 @@ aside {
     align-items: center !important; */
 }
 
+#pie-chart {
+    width: 1000px !important;
+    height: 500px !important;
+    /* margin-top: 20px;  */
+    /* padding-top: 100px; */
+}
 body {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     width: 960px;

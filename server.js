@@ -1,55 +1,62 @@
-//Budget API
-
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const port = 3000;
+const port = 4000;
 
-// app.use('/', express.static('public'));
 app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// const budget = { 
-//   myBudget: [
-//   {
-//     title: 'Extras',
-//     budget: 50
-//   },
-//   {
-//     title: 'Grocery-List',
-//     budget :150
-//   },
-//   {
-//     title: 'Rent',
-//     budget:525
-//   }
-// ]
-// };
+const mongoose = require('mongoose');
+const pbSchema = require('./models/pb_schema');
 
-// app.get('/hello', (req, res) => {
-//   res.send('Hello World!');
-// });
+let url = 'mongodb://127.0.0.1:27017/pb';
+
+app.get('/hello', (req, res) => {
+    res.send('Hello World.');
+});
 
 app.get('/budget', (req, res) => {
-  const samp=require('./pb.json')
-  res.json(samp);
+    mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
+        .then(() => {
+            console.log('Connected to database');
+            // Fetch data from MongoDB and send it as response
+            pbSchema.find({})
+                .then((data) => {
+                    res.send(data);
+                    mongoose.connection.close();
+                })
+                .catch((connectionError) => {
+                    console.log(connectionError);
+                });
+        })
+        .catch((connectionError) => {
+            console.log(connectionError);
+        });
+});
 
-  // fs.readFile("pb.json", "utf8", (err, data) => {
-  //   if (err) {
-  //     console.error("Error reading JSON file:", err);
-  //     res.status(500).send("Internal Server Error");
-  //     return;
-  //   }
+// Define a route handler for the root path ("/")
+app.use('/', express.static('public'));
 
-  //   try {
-  //     const pbData = JSON.parse(data);
-  //     res.json(pbData);
-  //   } catch (error) {
-  //     console.error("Error parsing JSON:", error);
-  //     res.status(500).send("Internal Server Error");
-  //   }
-  // });
+app.post('/addNewBudget', (req, res) => {
+    mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
+        .then(() => {
+            // Insert data into MongoDB
+            let newData = new pbSchema(req.body);
+            pbSchema.insertMany(newData)
+                .then((data) => {
+                    res.send('Data Entered Successfully');
+                    mongoose.connection.close();
+                })
+                .catch((connectionError) => {
+                    res.send(connectionError.message);
+                });
+        })
+        .catch((connectionError) => {
+            res.send(connectionError);
+        });
 });
 
 app.listen(port, () => {
-    console.log(`Example API served at http://localhost:${port}!`);
+    console.log(`API served at http://localhost:${port}`);
 });
